@@ -1,10 +1,27 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:ffi' as ffi;
+import 'package:ffi/ffi.dart';
 import 'package:rcldart/rcldart.dart' as rcldart;
 import 'package:rcldart/src/node.dart';
 import 'package:rcldart/src/publisher.dart' as publish;
 import 'package:rcldart/src/subscriber.dart' as rclsubscriber;
 import 'package:std_msgs/std_msgs.dart';
+import 'package:rcldart_utils/rcldart_utils.dart';
+
+// Helper function to create a properly initialized StdMsgsString
+StdMsgsString createFixedStdMsgsString(String message) {
+  // Create the message with empty string first
+  final msg = StdMsgsString("");
+  
+  // Manually set up the string with proper capacity
+  final utf8String = message.toNativeUtf8();
+  msg.data.ref.data = utf8String.cast<ffi.Char>();
+  msg.data.ref.size = message.length;
+  msg.data.ref.capacity = message.length + 1; // +1 for null terminator
+  
+  return msg;
+}
 
 void main() {
   rcldart.RclDart().init();
@@ -61,7 +78,7 @@ class _RosHomePageState extends State<RosHomePage> {
     });
   }
 
-  void _initializeRos() {
+  void _initializeRos() async {
     try {
       _node = rcldart.RclDart().createNode("flutter_ros_node", "flutter_app");
       
@@ -80,8 +97,12 @@ class _RosHomePageState extends State<RosHomePage> {
       
       _subscription!.subscribe();
       
+      // Wait a bit for publisher to establish connections
+      await Future.delayed(Duration(milliseconds: 500));
+      
       setState(() {
         _receivedMessages.add("ROS node initialized successfully");
+        _receivedMessages.add("Publisher ready - you can now send messages");
       });
     } catch (e) {
       setState(() {
@@ -103,18 +124,42 @@ class _RosHomePageState extends State<RosHomePage> {
   }
 
   void _sendMessage() {
-    if (_publisher != null && _messageController.text.isNotEmpty) {
-      try {
-        _publisher!.publish(StdMsgsString(_messageController.text));
-        setState(() {
-          _receivedMessages.add("Sent: ${_messageController.text}");
-        });
-        _messageController.clear();
-      } catch (e) {
-        setState(() {
-          _receivedMessages.add("Error sending message: $e");
-        });
-      }
+    if (_publisher == null) {
+      setState(() {
+        _receivedMessages.add("Error: Publisher not initialized");
+      });
+      return;
+    }
+    
+    final messageText = _messageController.text.trim();
+    if (messageText.isEmpty) {
+      setState(() {
+        _receivedMessages.add("Error: Message is empty");
+      });
+      return;
+    }
+    
+    try {
+      print("Sending message: '$messageText'");
+      
+      // Use our helper function to create properly initialized string
+      final message = createFixedStdMsgsString(messageText);
+      print("Fixed message created with value: '${message.value}'");
+      print("Capacity should be: ${messageText.length + 1}");
+      
+      _publisher!.publish(message);
+      print("Message published successfully with fixed capacity");
+      
+      setState(() {
+        _receivedMessages.add("Sent: $messageText");
+      });
+      _messageController.clear();
+    } catch (e) {
+      setState(() {
+        _receivedMessages.add("Error sending message: $e");
+      });
+      print("Publish error: $e");
+      print("Error type: ${e.runtimeType}");
     }
   }
 
