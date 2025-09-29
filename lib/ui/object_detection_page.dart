@@ -22,6 +22,8 @@ class _ObjectDetectionPageState extends State<ObjectDetectionPage> {
   List<String> _systemMessages = [];
   SimpleImageData? _currentImageData;
   bool _isConnected = false;
+  bool _showBrakeWarning = false;
+  String _warningMessage = '';
 
   late StreamSubscription<SimpleImageData> _imageSubscription;
   late StreamSubscription<DetectionResult> _detectionSubscription;
@@ -72,6 +74,10 @@ class _ObjectDetectionPageState extends State<ObjectDetectionPage> {
         setState(() {
           _detectionResults.add(DetectionUtils.formatDetectionResult(result));
           _systemMessages.add("Detection received: ${result.className}");
+
+          // Check for brake warning conditions
+          _checkBrakeWarning(result);
+
           if (_detectionResults.length > 50) {
             _detectionResults.removeAt(0);
           }
@@ -81,6 +87,34 @@ class _ObjectDetectionPageState extends State<ObjectDetectionPage> {
         });
       }
     });
+  }
+
+  void _checkBrakeWarning(DetectionResult result) {
+    if (result.isCritical) {
+      _showBrakeWarning = true;
+      _warningMessage = '🚨 BRAKE! ${result.className.toUpperCase()} AT ${result.distance ?? 'CLOSE RANGE'}';
+
+      // Auto-hide warning after 3 seconds
+      Future.delayed(Duration(seconds: 3), () {
+        if (mounted) {
+          setState(() {
+            _showBrakeWarning = false;
+          });
+        }
+      });
+    } else if (result.isWarning) {
+      // Brief warning flash
+      _showBrakeWarning = true;
+      _warningMessage = '⚠️ CAUTION: ${result.className} at ${result.distance ?? 'near'}';
+
+      Future.delayed(Duration(milliseconds: 1500), () {
+        if (mounted) {
+          setState(() {
+            _showBrakeWarning = false;
+          });
+        }
+      });
+    }
   }
 
   @override
@@ -97,7 +131,7 @@ class _ObjectDetectionPageState extends State<ObjectDetectionPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: const Text('Object Detection'),
+        title: const Text('Road Safety Detection'),
         actions: [
           Icon(
             _isConnected ? Icons.wifi : Icons.wifi_off,
@@ -106,23 +140,29 @@ class _ObjectDetectionPageState extends State<ObjectDetectionPage> {
           const SizedBox(width: 16),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            _buildCameraStreamCard(context),
-            const SizedBox(height: 16),
-            Expanded(
-              child: Row(
-                children: [
-                  Expanded(child: _buildDetectionResultsCard(context)),
-                  const SizedBox(width: 16),
-                  Expanded(child: _buildSystemMessagesCard(context)),
-                ],
-              ),
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children: [
+                _buildCameraStreamCard(context),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Expanded(child: _buildDetectionResultsCard(context)),
+                      const SizedBox(width: 16),
+                      Expanded(child: _buildSystemMessagesCard(context)),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+          // Brake Warning Overlay
+          if (_showBrakeWarning) _buildBrakeWarningOverlay(context),
+        ],
       ),
     );
   }
@@ -300,6 +340,70 @@ class _ObjectDetectionPageState extends State<ObjectDetectionPage> {
             style: const TextStyle(color: Colors.grey, fontSize: 12),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildBrakeWarningOverlay(BuildContext context) {
+    final bool isCritical = _warningMessage.startsWith('🚨');
+
+    return Positioned.fill(
+      child: Container(
+        color: isCritical
+            ? Colors.red.withOpacity(0.9)
+            : Colors.orange.withOpacity(0.8),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isCritical ? Colors.red : Colors.orange,
+                    width: 4,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Icon(
+                      isCritical ? Icons.warning : Icons.info,
+                      size: 64,
+                      color: isCritical ? Colors.red : Colors.orange,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      _warningMessage,
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: isCritical ? Colors.red : Colors.orange,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    if (isCritical) ...[
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _showBrakeWarning = false;
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                        ),
+                        child: const Text('ACKNOWLEDGED'),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

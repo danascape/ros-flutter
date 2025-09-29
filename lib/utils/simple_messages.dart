@@ -67,12 +67,16 @@ class SimpleDetection {
   final double confidence;
   final SimpleBoundingBox boundingBox;
   final DateTime timestamp;
+  final String? distance;
+  final String? dangerLevel;
 
   SimpleDetection({
     required this.className,
     required this.confidence,
     required this.boundingBox,
     required this.timestamp,
+    this.distance,
+    this.dangerLevel,
   });
 
   factory SimpleDetection.fromString(String detectionString) {
@@ -83,6 +87,8 @@ class SimpleDetection {
         confidence: double.tryParse(parts[1]) ?? 0.0,
         boundingBox: SimpleBoundingBox.fromString(parts[2]),
         timestamp: DateTime.now(),
+        distance: parts.length > 3 ? parts[3] : null,
+        dangerLevel: parts.length > 4 ? parts[4] : null,
       );
     }
     return SimpleDetection(
@@ -93,9 +99,15 @@ class SimpleDetection {
     );
   }
 
+  bool get isCritical => dangerLevel == 'critical';
+  bool get isWarning => dangerLevel == 'warning' || dangerLevel == 'critical';
+
   @override
   String toString() {
-    return '$className|$confidence|${boundingBox.toString()}';
+    String result = '$className|$confidence|${boundingBox.toString()}';
+    if (distance != null) result += '|$distance';
+    if (dangerLevel != null) result += '|$dangerLevel';
+    return result;
   }
 }
 

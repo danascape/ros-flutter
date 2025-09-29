@@ -6,9 +6,31 @@ class DetectionUtils {
     final confidence = (result.confidence * 100).toStringAsFixed(1);
     final bbox = result.boundingBox;
 
-    return "[$timestamp] ${result.className} (${confidence}%) "
-           "bbox: (${bbox.x.toStringAsFixed(1)}, ${bbox.y.toStringAsFixed(1)}, "
-           "${bbox.width.toStringAsFixed(1)}, ${bbox.height.toStringAsFixed(1)})";
+    String formatted = "[$timestamp] ${result.className} (${confidence}%)";
+
+    if (result.distance != null) {
+      formatted += " at ${result.distance}";
+    }
+
+    if (result.dangerLevel != null) {
+      String indicator = _getDangerIndicator(result.dangerLevel!);
+      formatted += " $indicator${result.dangerLevel!.toUpperCase()}";
+    }
+
+    return formatted;
+  }
+
+  static String _getDangerIndicator(String dangerLevel) {
+    switch (dangerLevel) {
+      case 'critical':
+        return '🚨 ';
+      case 'warning':
+        return '⚠️ ';
+      case 'caution':
+        return '⚡ ';
+      default:
+        return '';
+    }
   }
 
   static String formatConfidence(double confidence) {
