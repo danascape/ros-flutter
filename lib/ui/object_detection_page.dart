@@ -223,7 +223,7 @@ class _ObjectDetectionPageState extends State<ObjectDetectionPage> {
                     padding: const EdgeInsets.symmetric(vertical: 2.0),
                     child: Text(
                       _detectionResults[index],
-                      style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                      style: const TextStyle(fontFamily: 'monospace', fontSize: 16),
                     ),
                   );
                 },
@@ -255,7 +255,7 @@ class _ObjectDetectionPageState extends State<ObjectDetectionPage> {
                     padding: const EdgeInsets.symmetric(vertical: 2.0),
                     child: Text(
                       _systemMessages[index],
-                      style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                      style: const TextStyle(fontFamily: 'monospace', fontSize: 16),
                     ),
                   );
                 },
@@ -286,7 +286,7 @@ class _ObjectDetectionPageState extends State<ObjectDetectionPage> {
                       const SizedBox(height: 8),
                       Text(
                         'Error displaying image: $error',
-                        style: const TextStyle(color: Colors.red, fontSize: 10),
+                        style: const TextStyle(color: Colors.red, fontSize: 14),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -299,7 +299,7 @@ class _ObjectDetectionPageState extends State<ObjectDetectionPage> {
             padding: const EdgeInsets.all(4.0),
             child: Text(
               '${_currentImageData!.width}x${_currentImageData!.height} • ${_currentImageData!.format}',
-              style: const TextStyle(color: Colors.grey, fontSize: 10),
+              style: const TextStyle(color: Colors.grey, fontSize: 14),
             ),
           ),
         ],
@@ -313,7 +313,7 @@ class _ObjectDetectionPageState extends State<ObjectDetectionPage> {
             const SizedBox(height: 8),
             Text(
               'Failed to decode image: $e',
-              style: const TextStyle(color: Colors.orange, fontSize: 10),
+              style: const TextStyle(color: Colors.orange, fontSize: 14),
               textAlign: TextAlign.center,
             ),
           ],
@@ -329,15 +329,15 @@ class _ObjectDetectionPageState extends State<ObjectDetectionPage> {
         children: [
           Text(
             'Image: ${_currentImageData!.data}',
-            style: const TextStyle(color: Colors.grey, fontSize: 12),
+            style: const TextStyle(color: Colors.grey, fontSize: 16),
           ),
           Text(
             'Format: ${_currentImageData!.format}',
-            style: const TextStyle(color: Colors.grey, fontSize: 12),
+            style: const TextStyle(color: Colors.grey, fontSize: 16),
           ),
           Text(
             'Resolution: ${_currentImageData!.width}x${_currentImageData!.height}',
-            style: const TextStyle(color: Colors.grey, fontSize: 12),
+            style: const TextStyle(color: Colors.grey, fontSize: 16),
           ),
         ],
       ),
@@ -377,7 +377,7 @@ class _ObjectDetectionPageState extends State<ObjectDetectionPage> {
                     Text(
                       _warningMessage,
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 32,
                         fontWeight: FontWeight.bold,
                         color: isCritical ? Colors.red : Colors.orange,
                       ),
@@ -395,7 +395,7 @@ class _ObjectDetectionPageState extends State<ObjectDetectionPage> {
                           backgroundColor: Colors.red,
                           foregroundColor: Colors.white,
                         ),
-                        child: const Text('ACKNOWLEDGED'),
+                        child: const Text('ACKNOWLEDGED', style: TextStyle(fontSize: 18)),
                       ),
                     ],
                   ],

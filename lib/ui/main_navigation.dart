@@ -23,6 +23,8 @@ class _MainNavigationState extends State<MainNavigation> {
       body: _pages[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
+        selectedFontSize: 16,
+        unselectedFontSize: 14,
         onTap: (index) {
           setState(() {
             _currentIndex = index;

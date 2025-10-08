@@ -154,7 +154,7 @@ class _RosHomePageState extends State<RosHomePage> {
                       padding: const EdgeInsets.symmetric(vertical: 2.0),
                       child: Text(
                         _receivedMessages[index],
-                        style: const TextStyle(fontFamily: 'monospace'),
+                        style: const TextStyle(fontFamily: 'monospace', fontSize: 16),
                       ),
                     );
                   },
